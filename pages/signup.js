@@ -1,11 +1,10 @@
+# In nano, paste this entire block (replace existing):
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useRouter } from 'next/router';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
 
   const handleSignup = async () => {
     const { error } = await supabase.auth.signUp({ email, password });
