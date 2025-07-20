@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (authError) setError(authError.message);
     else {
@@ -26,8 +27,8 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md text-center">
         <h1 className="text-3xl font-bold mb-2 text-[#2046f5]">AI Powered Lead Generation for EXIM</h1>
-        <h2 className="text-xl font-semibold mb-6 text-gray-700 dark:text-gray-300">By Business Market Network</h2>
-        {error && <p className="text-red-500 mb-4 text-center" role="alert" aria-live="polite">{error}</p>}
+        <h2 className="text-xl font-medium mb-6 text-gray-700 dark:text-gray-300">By Business Market Network</h2>
+        {error && <p className="text-red-500 mb-4 text-center" role="alert" aria-live="assertive">{error}</p>}
         <form onSubmit={handleLogin} aria-label="Login Form" className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
@@ -41,8 +42,8 @@ export default function Login() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <p className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400"><a href="/forgot-password" className="text-[#2046f5] hover:underline">Forgot password?</a></p>
-        <p className="text-center mt-2 text-sm text-gray-600 dark:text-gray-400">New user? <a href="/signup" className="text-[#2046f5] hover:underline">Register</a></p>
+        <p className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400"><Link href="/forgot-password" className="text-[#2046f5] hover:underline">Forgot password?</Link></p>
+        <p className="text-center mt-2 text-sm text-gray-600 dark:text-gray-400">New user? <Link href="/signup" className="text-[#2046f5] hover:underline">Register</Link></p>
       </div>
     </div>
   );
