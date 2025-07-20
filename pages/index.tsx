@@ -1,3 +1,4 @@
+# In nano, paste this entire block (replace existing):
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -44,10 +45,6 @@ export default function Home() {
     rating: '',
   });
 
-  useEffect(() => {
-    fetchCompanies();
-  }, [fetchCompanies]);
-
   const fetchCompanies = async () => {
     let query = supabase.from('companies').select('*');
 
@@ -63,6 +60,10 @@ export default function Home() {
     if (error) console.error('Error fetching companies:', error);
     else setCompanies(data || []);
   };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
