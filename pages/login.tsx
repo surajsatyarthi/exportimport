@@ -15,8 +15,12 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
       toast.success('Check your email for the login link!');
-    } catch (error: Error) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unknown error occurred.');
+      }
     } finally {
       setLoading(false);
     }
