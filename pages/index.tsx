@@ -1,120 +1,98 @@
-# In nano, paste this entire block (replace existing):
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { useEffect, useState, useCallback } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import { useRouter } from 'next/router';
+import type { User } from '@supabase/supabase-js';
 
-// Define interface for Company data
-interface Company {
-  id: number;
-  company_name: string;
-  country: string;
-  product_category: string;
-  hs_code: string;
-  company_size: string;
-  export_volume: number;
-  import_volume: number;
-  verified: boolean;
-  rating: number;
-  email: string;
-  website: string;
-  phone: string;
-}
+// We will define the Company and Filter interfaces here later
+// For now, we just need the layout.
 
-// Define interface for Filters state
-interface Filters {
-  product_category: string;
-  hs_code: string;
-  country: string;
-  company_size: string;
-  verified: string;
-  rating: string;
-}
-
-const supabaseUrl = 'https://houzcaefzyxpuigazrvz.supabase.co'; // Your Supabase URL
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvdXpjYWVmenl4cHVpZ2F6cnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NzI4OTMsImV4cCI6MjA2ODQ0ODg5M30.CDfHn_42zdRo9K2zd9L2hHZz7GbuCyRrQRou'; // Your Supabase anon key
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export default function Home() {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [filters, setFilters] = useState<Filters>({
-    product_category: '',
-    hs_code: '',
-    country: '',
-    company_size: '',
-    verified: '',
-    rating: '',
-  });
-
-  const fetchCompanies = async () => {
-    let query = supabase.from('companies').select('*');
-
-    if (filters.product_category) query = query.ilike('product_category', `%${filters.product_category}%`);
-    if (filters.hs_code) query = query.ilike('hs_code', `%${filters.hs_code}%`);
-    if (filters.country) query = query.ilike('country', `%${filters.country}%`);
-    if (filters.company_size) query = query.ilike('company_size', `%${filters.company_size}%`);
-    if (filters.verified) query = query.eq('verified', filters.verified === 'true');
-    if (filters.rating) query = query.gte('rating', parseFloat(filters.rating) || 0);
-
-    const { data, error } = await query;
-
-    if (error) console.error('Error fetching companies:', error);
-    else setCompanies(data || []);
-  };
+export default function Dashboard() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchCompanies();
-  }, [fetchCompanies]);
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        setUser(session.user);
+      }
+    };
+    getSession();
+  }, [router]);
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
   };
 
-  const applyFilters = () => {
-    fetchCompanies();
-  };
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1>Export-Import Company Database</h1>
-      <div className="grid grid-cols-6 gap-4 mb-4">
-        <input name="product_category" placeholder="Product Category" onChange={handleFilterChange} className="border p-2" />
-        <input name="hs_code" placeholder="HS Code" onChange={handleFilterChange} className="border p-2" />
-        <input name="country" placeholder="Country" onChange={handleFilterChange} className="border p-2" />
-        <input name="company_size" placeholder="Company Size" onChange={handleFilterChange} className="border p-2" />
-        <select name="verified" onChange={handleFilterChange} className="border p-2">
-          <option value="">Verified</option>
-          <option value="true">Yes</option>
-          <option value="false">No</option>
-        </select>
-        <input name="rating" placeholder="Min Rating" onChange={handleFilterChange} className="border p-2" />
-        <button onClick={applyFilters} className="bg-blue-500 text-white p-2 rounded">Apply Filters</button>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-gray-900">EXIM Data Dashboard</h1>
+          <div className="flex items-center">
+            <span className="text-sm text-gray-600 mr-4">{user.email}</span>
+            <button
+              onClick={handleSignOut}
+              className="text-white text-sm font-medium py-2 px-4 rounded-md"
+              style={{ backgroundColor: '#2046f5' }}
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </header>
+      
+      <div className="flex max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Vertical Filter Sidebar */}
+        <aside className="w-1/4 pr-8">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Filters</h3>
+            {/* Filter controls will go here */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Product Category</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">HS Code</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Country</label>
+                <input type="text" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </div>
+               <button
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white"
+                  style={{ backgroundColor: '#2046f5' }}
+                >
+                  Apply Filters
+                </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="w-3/4">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+             <h3 className="text-lg font-semibold mb-4">Companies</h3>
+            {/* Company data table will go here */}
+            <div className="border-2 border-dashed border-gray-200 rounded-lg h-96 p-4 text-center text-gray-500">
+              Your data table will appear here.
+            </div>
+          </div>
+        </main>
       </div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="border p-2">Company Name</th>
-            <th className="border p-2">Country</th>
-            <th className="border p-2">Product Category</th>
-            <th className="border p-2">HS Code</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Website</th>
-            <th className="border p-2">Phone</th>
-          </tr>
-        </thead>
-        <tbody>
-          {companies.map((company) => (
-            <tr key={company.id}>
-              <td className="border p-2">{company.company_name}</td>
-              <td className="border p-2">{company.country}</td>
-              <td className="border p-2">{company.product_category}</td>
-              <td className="border p-2">{company.hs_code}</td>
-              <td className="border p-2">{company.email}</td>
-              <td className="border p-2">{company.website}</td>
-              <td className="border p-2">{company.phone}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }
