@@ -15,8 +15,8 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
       toast.success('Check your email for the login link!');
-    } catch (error: any) {
-      toast.error(error.error_description || error.message);
+    } catch (error: Error) {
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -56,10 +56,10 @@ export default function Login() {
           </div>
         </form>
         <p className="text-xs text-gray-500 mt-4">
-          We'll email you a magic link for a password-free sign-in.
+          We&apos;ll email you a magic link for a password-free sign-in.
         </p>
          <p className="text-sm text-center mt-4">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="font-medium" style={{ color: '#2046f5' }}>
                 Sign up
             </Link>

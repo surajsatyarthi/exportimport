@@ -16,8 +16,8 @@ export default function Signup() {
       const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
       toast.success('Check your email for the confirmation link!');
-    } catch (error: any) {
-      toast.error(error.error_description || error.message);
+    } catch (error: Error) {
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
