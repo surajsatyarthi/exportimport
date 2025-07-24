@@ -158,7 +158,7 @@ export default async function handler(
 async function logSearch(
   userId: string, 
   query: string, 
-  filters: any, 
+  filters: Record<string, string | undefined>, 
   resultsCount: number
 ) {
   try {
