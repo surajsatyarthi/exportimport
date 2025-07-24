@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import type { User } from '@supabase/supabase-js';
@@ -63,33 +63,14 @@ export default function Dashboard() {
     is_verified: ''
   });
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      } else {
-        setUser(session.user);
-        // Load initial data
-        searchCompanies();
-      }
-    };
-    getSession();
-  }, [router]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
-  const searchCompanies = async (page = 1) => {
+  const searchCompanies = useCallback(async (page = 1) => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: '10',
         ...Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value.trim() !== '')
+          Object.entries(filters).filter(([, value]) => value.trim() !== '')
         )
       });
 
@@ -110,6 +91,25 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  }, [filters]);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        setUser(session.user);
+        // Load initial data
+        searchCompanies();
+      }
+    };
+    getSession();
+  }, [router, searchCompanies]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
   };
 
   const handleFilterChange = (key: keyof SearchFilters, value: string) => {
@@ -180,9 +180,9 @@ export default function Dashboard() {
       
       toast.success(`Successfully exported ${selectedCompanies.size} companies`);
       setSelectedCompanies(new Set());
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Export error:', error);
-      toast.error(error.message || 'Export failed');
+      toast.error((error as Error).message || 'Export failed');
     }
   };
 
